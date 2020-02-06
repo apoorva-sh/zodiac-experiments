@@ -4,9 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import load_breast_cancer
-from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.metrics import f1_score
 from sklearn.metrics import accuracy_score
