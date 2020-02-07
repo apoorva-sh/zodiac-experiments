@@ -3,6 +3,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 import math
+import colorsys
 
 from sklearn.decomposition import PCA
 from sklearn.metrics import f1_score
@@ -26,7 +27,7 @@ class Zodiac:
     density_map = []
     columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
 
-    def __init__(self,train_data,test_data,test_labels,test_predictions,dim_red):
+    def __init__(self,train_data,test_data,test_labels,test_predictions,dim_red="PCA"):
         """
 
         :param train_data:
@@ -47,22 +48,22 @@ class Zodiac:
 
         if dim_red == "PCA":
             pca = PCA(n_components=2)
-            principalComponents = pca.fit_transform(data)
-            self.transformed_data = pd.DataFrame(data=principalComponents, columns=['comp1', 'comp2'])
+            self.transformed_data = pd.DataFrame(data=pca.fit_transform(data), columns=['comp1', 'comp2'])
         if dim_red == "TSNE":
             self.transformed_data = pd.DataFrame(data=TSNE(n_components=2).fit_transform(data),columns=['comp1','comp2'])
 
-        self.train_data, self.test_data = principalDf.iloc[:train_len, :], principalDf.iloc[train_len:, :]
+        self.train_data, self.test_data = self.transformed_data.iloc[:train_len, :], self.transformed_data.iloc[train_len:, :]
         self.test_data["labels"] = test_labels
         self.test_data["predictions"] = test_predictions
 
-    def metrics(self,custom_func,metrics=["accuracy"],custom = False):
+    def metrics(self,custom_func= None,metrics=["accuracy"],custom = False):
         """
         Function to store metric function list
         :param metrics:
         :param custom:
         :return:
         """
+        self.columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
         if not custom:
             for i in metrics:
                 self.columns.append(i)
@@ -134,6 +135,8 @@ class Zodiac:
         :param h:
         :return:
         """
+        self.x_axis = []
+        self.y_axis = []
         if h == -1:
             max_1 = max(self.test_data['comp1'])
             max_2 = max(self.test_data['comp2'])
@@ -151,25 +154,66 @@ class Zodiac:
             for i in range(0, 11):
                 self.y_axis.append(round(min_2 + yaxis * i))
         else:
-            minx = min(data['principal component 1']) - h
-            maxx = max(data['principal component 1']) + h
+            minx = min(self.test_data['comp1']) - h
+            maxx = max(self.test_data['comp1']) + h
             numDivX = round((maxx - minx) / h)
-            print(numDivX)
+
 
             self.x_axis.append(minx)
             for i in range(1, numDivX + 1):
                 self.x_axis.append((i * h) + minx)
 
-            miny = min(data['principal component 2']) - h
-            maxy = max(data['principal component 2']) + h
+            miny = min(self.test_data['comp2']) - h
+            maxy = max(self.test_data['comp2']) + h
             numDivY = round((maxy - miny) / h)
-            print(numDivY)
+
 
             self.y_axis.append(miny)
             for i in range(1, numDivY + 1):
                 self.y_axis.append((i * h) + miny)
 
         self.__gen_density_matrix()
+
+    def split_plot(self,metric):
+        if metric not in self.columns:
+            raise Exception("Chosen metric was not initialized. check the metric initialization function.")
+        self.test_data["color"] = self.test_data["labels"] == self.test_data["predictions"]
+        c = []
+        for i in self.test_data["color"]:
+            if i:
+                c.append([0, 0.5, 0, 0.3])
+            else:
+                c.append([0.9, 0.2, 0, 1.0])
+        self.test_data = self.test_data.sort_values(by=['color'],ascending=False)
+        fig = plt.figure(figsize=(16, 8))
+        plt.xticks(self.x_axis)
+        plt.yticks(self.y_axis)
+        ax = fig.add_subplot(1, 1, 1)
+        ax.scatter(self.test_data['comp1'], self.test_data['comp2'], c=c, s=50)
+
+        ax.grid()
+
+        c2 = self.__gen_color(metric)
+
+        fig2 = plt.figure(figsize=(16, 8))
+        plt.xticks(self.x_axis)
+        plt.yticks(self.y_axis)
+        ax2 = fig2.add_subplot(1, 1, 1)
+        ax2.scatter(self.test_data['comp1'], self.test_data['comp2'], c=c2, s=50)
+
+        ax2.grid()
+
+    def __gen_color(self, metric):
+        c = []
+
+        for k in self.test_data.values:
+            metric_val = self.density_map.loc[(self.density_map['x1'] <= k[0]) & (self.density_map['x2'] > k[0]) & (self.density_map['y1'] <= k[1]) & (self.density_map['y2'] > k[1])][
+                metric].values[0]
+
+            c.append([1-metric_val,metric_val,0]) #change mapping TBD
+        return c
+
+
 
 
         
