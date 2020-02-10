@@ -56,7 +56,7 @@ class Zodiac:
         self.test_data["labels"] = test_labels
         self.test_data["predictions"] = test_predictions
 
-    def metrics(self,custom_func= None,metrics=["accuracy"],custom = False):
+    def setmetrics(self,custom_func= None,metrics=["accuracy"],custom = False):
         """
         Function to store metric function list
         :param metrics:
@@ -64,6 +64,8 @@ class Zodiac:
         :return:
         """
         self.columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
+        self.metrics = []
+        print("Setting metrics..")
         if not custom:
             for i in metrics:
                 self.columns.append(i)
@@ -72,6 +74,7 @@ class Zodiac:
             self.columns.append("custom")
             self.metrics.push(custom_func)
             self.custom_func = True
+        print("Metrics set")
 
     def __in_windows(self,x1, x2, y1, y2, x, y):
         """
@@ -93,6 +96,7 @@ class Zodiac:
 
         :return:
         """
+        print("Generating density matrix...")
         count = len(self.test_data)
         den_map = []
         for x in range(len(self.x_axis) - 1):
@@ -135,6 +139,8 @@ class Zodiac:
         :param h:
         :return:
         """
+
+        print("Splitting the data into grids...")
         self.x_axis = []
         self.y_axis = []
         if h == -1:
@@ -173,45 +179,73 @@ class Zodiac:
                 self.y_axis.append((i * h) + miny)
 
         self.__gen_density_matrix()
+        print("Completed")
 
-    def split_plot(self,metric):
+    def split_plot(self,metric,colormap = "viridis"):
+        """
+
+        :param metric:
+        :param colormap:
+        :return:
+        """
         if metric not in self.columns:
             raise Exception("Chosen metric was not initialized. check the metric initialization function.")
         self.test_data["color"] = self.test_data["labels"] == self.test_data["predictions"]
-        c = []
-        for i in self.test_data["color"]:
-            if i:
-                c.append([0, 0.5, 0, 0.3])
-            else:
-                c.append([0.9, 0.2, 0, 1.0])
-        self.test_data = self.test_data.sort_values(by=['color'],ascending=False)
-        fig = plt.figure(figsize=(16, 8))
+
+        green = self.test_data.color == True
+        plt.clf()
+        plt.figure(figsize=(16, 20))
+        plt.subplot(2, 1, 1)
+        plt.legend(title = "Data Classification spread")
         plt.xticks(self.x_axis)
         plt.yticks(self.y_axis)
-        ax = fig.add_subplot(1, 1, 1)
-        ax.scatter(self.test_data['comp1'], self.test_data['comp2'], c=c, s=50)
+        plt.scatter(self.test_data.loc[green,'comp1'], self.test_data.loc[green,'comp2'], c=[0,0.5,0,0.3], s=50)
+        plt.scatter(self.test_data.loc[~green, 'comp1'], self.test_data.loc[~green, 'comp2'], c=[0.9, 0.2, 0, 1.0], s=50)
+        plt.grid()
 
-        ax.grid()
-
-        c2 = self.__gen_color(metric)
-
-        fig2 = plt.figure(figsize=(16, 8))
+        plt.subplot(2, 1, 2)
+        plt.legend(title=metric + " spread")
         plt.xticks(self.x_axis)
         plt.yticks(self.y_axis)
-        ax2 = fig2.add_subplot(1, 1, 1)
-        ax2.scatter(self.test_data['comp1'], self.test_data['comp2'], c=c2, s=50)
+        plt.scatter(self.test_data['comp1'], self.test_data['comp2'], c=self.__gen_color(metric),cmap=colormap, s=50)
+        plt.grid()
+        plt.colorbar()
+        plt.tight_layout()
+        plt.show()
 
-        ax2.grid()
+        del self.test_data["color"]
 
     def __gen_color(self, metric):
+        """
+
+        :param metric:
+        :return:
+        """
         c = []
 
         for k in self.test_data.values:
             metric_val = self.density_map.loc[(self.density_map['x1'] <= k[0]) & (self.density_map['x2'] > k[0]) & (self.density_map['y1'] <= k[1]) & (self.density_map['y2'] > k[1])][
                 metric].values[0]
-
-            c.append([1-metric_val,metric_val,0]) #change mapping TBD
+            c.append(metric_val)
         return c
+
+    def metric_plot(self,metric,colormap="viridis"):
+        if metric not in self.columns:
+            raise Exception("Chosen metric was not initialized. check the metric initialization function.")
+
+        plt.clf()
+        plt.figure(figsize=(16, 8))
+        plt.legend(title=metric + " spread")
+        plt.xticks(self.x_axis)
+        plt.yticks(self.y_axis)
+        plt.scatter(self.test_data['comp1'], self.test_data['comp2'], c=self.__gen_color(metric), cmap=colormap, s=50)
+        plt.grid()
+        plt.colorbar()
+        plt.tight_layout()
+        plt.show()
+
+
+
 
 
 
