@@ -230,6 +230,12 @@ class Zodiac:
         return c
 
     def metric_plot(self,metric,colormap="viridis"):
+        """
+
+        :param metric:
+        :param colormap:
+        :return:
+        """
         if metric not in self.columns:
             raise Exception("Chosen metric was not initialized. check the metric initialization function.")
 
@@ -243,6 +249,66 @@ class Zodiac:
         plt.colorbar()
         plt.tight_layout()
         plt.show()
+
+    def parzen_plot(self,radius,metric,colormap = "viridis"):
+        """
+        
+        :param radius:
+        :param metric:
+        :param colormap:
+        :return:
+        """
+        c = []
+
+        for i in self.test_data.values:
+            h = i[0]
+            k = i[1]
+            results = []
+            preds = []
+            for j in self.test_data.values:
+                x = j[0] - h
+                y = j[1] - k
+                rval = radius*radius
+                lval = (x*x) + (y*y)
+                if lval <= rval:
+                    results.append(j[3])
+                    preds.append(j[2])
+
+            if metric == "f1":
+                score = f1_score(results, preds, average='micro')
+            elif metric == "accuracy":
+                score = accuracy_score(results, preds)
+            elif metric == "recall":
+                score = recall_score(results, preds, average='micro')
+            elif metric == "precision":
+                score = precision_score(results, preds, average='micro')
+            c.append(score)
+
+
+        plt.clf()
+        plt.figure(figsize=(16, 8))
+        plt.legend(title=metric + " parzen window")
+        if self.x_axis != [] and self.y_axis != []:
+            plt.xticks(self.x_axis)
+            plt.yticks(self.y_axis)
+        plt.scatter(self.test_data['comp1'], self.test_data['comp2'], c=c, cmap=colormap, s=50)
+        plt.grid()
+        plt.colorbar()
+        plt.tight_layout()
+        plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
