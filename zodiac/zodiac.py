@@ -25,7 +25,10 @@ class Zodiac:
     x_axis = []
     y_axis = []
     density_map = []
+    parzen_map = []
     columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
+    pcolumns = ['component 1','component 2','num points']
+
 
     def __init__(self,train_data,test_data,test_labels,test_predictions,dim_red="PCA"):
         """
@@ -69,9 +72,11 @@ class Zodiac:
         if not custom:
             for i in metrics:
                 self.columns.append(i)
+                self.pcolumns.append(i)
             self.metrics = metrics
         else:
             self.columns.append("custom")
+            self.pcolumns.append("custom")
             self.metrics.push(custom_func)
             self.custom_func = True
         print("Metrics set")
@@ -250,21 +255,18 @@ class Zodiac:
         plt.tight_layout()
         plt.show()
 
-    def parzen_plot(self,radius,metric,colormap = "viridis"):
-        """
-        
-        :param radius:
-        :param metric:
-        :param colormap:
-        :return:
-        """
-        c = []
+    def gen_parzen(self,radius):
 
+        pmat = []
         for i in self.test_data.values:
+            pmrow = []
             h = i[0]
             k = i[1]
+            pmrow.append(h)
+            pmrow.append(k)
             results = []
             preds = []
+            numpoints = 0
             for j in self.test_data.values:
                 x = j[0] - h
                 y = j[1] - k
@@ -273,17 +275,34 @@ class Zodiac:
                 if lval <= rval:
                     results.append(j[3])
                     preds.append(j[2])
+                    numpoints = numpoints + 1
+            pmrow.append(numpoints)
 
-            if metric == "f1":
-                score = f1_score(results, preds, average='micro')
-            elif metric == "accuracy":
-                score = accuracy_score(results, preds)
-            elif metric == "recall":
-                score = recall_score(results, preds, average='micro')
-            elif metric == "precision":
-                score = precision_score(results, preds, average='micro')
-            c.append(score)
+            for metric in self.metrics:
+                score = 0
+                if metric == "f1":
+                    score = f1_score(results, preds, average='micro')
+                elif metric == "accuracy":
+                    score = accuracy_score(results, preds)
+                elif metric == "recall":
+                    score = recall_score(results, preds, average='micro')
+                elif metric == "precision":
+                    score = precision_score(results, preds, average='micro')
+                pmrow.append(score)
+            pmat.append(pmrow)
 
+        self.parzen_map = pd.DataFrame(data=pmat,
+                                        columns=self.pcolumns)
+
+
+    def parzen_plot(self,metric,colormap = "viridis"):
+        """
+
+        :param radius:
+        :param metric:
+        :param colormap:
+        :return:
+        """
 
         plt.clf()
         plt.figure(figsize=(16, 8))
@@ -291,7 +310,7 @@ class Zodiac:
         if self.x_axis != [] and self.y_axis != []:
             plt.xticks(self.x_axis)
             plt.yticks(self.y_axis)
-        plt.scatter(self.test_data['comp1'], self.test_data['comp2'], c=c, cmap=colormap, s=50)
+        plt.scatter(self.parzen_map['component 1'], self.parzen_map['component 2'], c=self.parzen_map[metric], cmap=colormap, s=50)
         plt.grid()
         plt.colorbar()
         plt.tight_layout()
