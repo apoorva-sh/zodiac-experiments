@@ -12,25 +12,26 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.manifold import TSNE
 
-class Zodiac:
 
+class Zodiac:
     train_data = None
     test_data = None
     transformed_data = None
     custom_func = False
-    #labels = None
-    #predictions = None
+    # labels = None
+    # predictions = None
     dim_red = "PCA"
     metrics = []
     x_axis = []
     y_axis = []
     density_map = []
     parzen_map = []
+    average = None
+    model_type = ""
     columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
-    pcolumns = ['component 1','component 2','num points']
+    pcolumns = ['component 1', 'component 2', 'num points']
 
-
-    def __init__(self,train_data,test_data,test_labels,test_predictions,dim_red="PCA"):
+    def __init__(self, train_data, test_data, test_labels, test_predictions, model_type, dim_red="PCA"):
         """
 
         :param train_data:
@@ -40,10 +41,9 @@ class Zodiac:
         :param dim_red:
         """
 
-        #self.predictions = test_predictions
-        #self.labels = test_labels
+        # self.predictions = test_predictions
+        # self.labels = test_labels
         self.dim_red = dim_red
-
 
         train_len = len(train_data)
 
@@ -53,19 +53,25 @@ class Zodiac:
             pca = PCA(n_components=2)
             self.transformed_data = pd.DataFrame(data=pca.fit_transform(data), columns=['comp1', 'comp2'])
         if dim_red == "TSNE":
-            self.transformed_data = pd.DataFrame(data=TSNE(n_components=2).fit_transform(data),columns=['comp1','comp2'])
+            self.transformed_data = pd.DataFrame(data=TSNE(n_components=2).fit_transform(data),
+                                                 columns=['comp1', 'comp2'])
 
-        self.train_data, self.test_data = self.transformed_data.iloc[:train_len, :], self.transformed_data.iloc[train_len:, :]
+        self.train_data, self.test_data = self.transformed_data.iloc[:train_len, :], self.transformed_data.iloc[
+                                                                                     train_len:, :]
         self.test_data["labels"] = test_labels
         self.test_data["predictions"] = test_predictions
+        self.model_type = model_type
 
-    def setmetrics(self,custom_func= None,metrics=["accuracy"],custom = False):
+    def set_metrics(self, custom_func=None, metrics=["accuracy"], average=None, custom=False):
         """
-        Function to store metric function list
+        Function to set metrics
+        :param custom_func:
         :param metrics:
+        :param average:
         :param custom:
         :return:
         """
+
         self.columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
         self.metrics = []
         print("Setting metrics..")
@@ -79,9 +85,16 @@ class Zodiac:
             self.pcolumns.append("custom")
             self.metrics.push(custom_func)
             self.custom_func = True
+
+        self.average = average
+        if self.model_type == "multiclass" and (self.average is None) and (not custom):
+            if ("recall" in metrics) or ("precision" in metrics) or ("f1" in metrics):
+                raise Exception("for the set metrics using multiclass model, average type cannot be None. "
+                                "Check sklearn documentation for metrics for more information")
+
         print("Metrics set")
 
-    def __in_windows(self,x1, x2, y1, y2, x, y):
+    def __in_windows(self, x1, x2, y1, y2, x, y):
         """
 
         :param x1:
@@ -92,7 +105,7 @@ class Zodiac:
         :param y:
         :return:
         """
-        if (x >= x1 and x < x2) and (y >= y1 and y < y2):
+        if (x1 <= x < x2) and (y1 <= y < y2):
             return True
         return False
 
@@ -107,38 +120,48 @@ class Zodiac:
         for x in range(len(self.x_axis) - 1):
             for y in range(len(self.y_axis) - 1):
                 dmrow = [self.x_axis[x], self.x_axis[x + 1], self.y_axis[y], self.y_axis[y + 1]]
-                results = []
-                preds = []
+                groundtruth = []
+                predictions = []
                 density = 0
                 for i in self.test_data.values:
-                    if self.__in_windows(self.x_axis[x], self.x_axis[x + 1], self.y_axis[y], self.y_axis[y + 1], i[0], i[1]):
-                        results.append(i[3])
-                        preds.append(i[2])
+                    if self.__in_windows(self.x_axis[x], self.x_axis[x + 1], self.y_axis[y], self.y_axis[y + 1], i[0],
+                                         i[1]):
+                        predictions.append(i[3])
+                        groundtruth.append(i[2])
                         density = density + 1
                 dmrow.append(density)
-                dmrow.append(density/count)
+                dmrow.append(density / count)
                 if density != 0:
                     if not self.custom_func:
                         for function in self.metrics:
                             if function == "f1":
-                                f1 = f1_score(results, preds, average='micro')
-                                dmrow.append(f1)
+                                if self.average is None:
+                                    dmrow.append(f1_score(y_true=groundtruth, y_pred=predictions))
+                                else:
+                                    dmrow.append(f1_score(y_true=groundtruth, y_pred=predictions, average=self.average))
                             elif function == "accuracy":
-                                accuracy = accuracy_score(results, preds)
-                                dmrow.append(accuracy)
+                                dmrow.append(accuracy_score(y_true=groundtruth, y_pred=predictions))
                             elif function == "recall":
-                                recall = recall_score(results, preds, average='micro')
-                                dmrow.append(recall)
+                                if self.average is None:
+                                    dmrow.append(recall_score(y_true=groundtruth, y_pred=predictions))
+                                else:
+                                    dmrow.append(
+                                        recall_score(y_true=groundtruth, y_pred=predictions, average=self.average))
                             elif function == "precision":
-                                precision = precision_score(results, preds, average='micro')
-                                dmrow.append(precision)
+                                if self.average is None:
+                                    dmrow.append(precision_score(y_true=groundtruth, y_pred=predictions))
+                                else:
+                                    dmrow.append(
+                                        precision_score(y_true=groundtruth, y_pred=predictions, average=self.average))
+                    else:
+                        for function in self.metrics:
+                            dmrow.append(function(groundtruth, predictions))
                     den_map.append(dmrow)
 
         self.density_map = pd.DataFrame(data=den_map,
-                          columns=self.columns)
+                                        columns=self.columns)
 
-
-    def split_manual_grid(self,h=-1):
+    def split_manual_grid(self, h=-1):
         """
 
         :param h:
@@ -169,7 +192,6 @@ class Zodiac:
             maxx = max(self.test_data['comp1']) + h
             numDivX = round((maxx - minx) / h)
 
-
             self.x_axis.append(minx)
             for i in range(1, numDivX + 1):
                 self.x_axis.append((i * h) + minx)
@@ -178,7 +200,6 @@ class Zodiac:
             maxy = max(self.test_data['comp2']) + h
             numDivY = round((maxy - miny) / h)
 
-
             self.y_axis.append(miny)
             for i in range(1, numDivY + 1):
                 self.y_axis.append((i * h) + miny)
@@ -186,37 +207,45 @@ class Zodiac:
         self.__gen_density_matrix()
         print("Completed")
 
-    def split_plot(self,metric,colormap = "viridis"):
+    def split_plot(self, metrics, colormap="viridis"):
         """
 
         :param metric:
         :param colormap:
         :return:
         """
-        if metric not in self.columns:
-            raise Exception("Chosen metric was not initialized. check the metric initialization function.")
-        self.test_data["color"] = self.test_data["labels"] == self.test_data["predictions"]
 
+        num = len(metrics)
+
+        self.test_data["color"] = self.test_data["labels"] == self.test_data["predictions"]
         green = self.test_data.color == True
         plt.clf()
-        plt.figure(figsize=(16, 20))
-        plt.subplot(2, 1, 1)
-        plt.legend(title = "Data Classification spread")
+        plt.figure(figsize=(16, 8*(num+1) + 2*(num+1)))
+        plt.subplot(num+1, 1, 1)
+
+        plt.legend(title="Data Classification spread")
         plt.xticks(self.x_axis)
         plt.yticks(self.y_axis)
-        plt.scatter(self.test_data.loc[green,'comp1'], self.test_data.loc[green,'comp2'], c=[0,0.5,0,0.3], s=50)
-        plt.scatter(self.test_data.loc[~green, 'comp1'], self.test_data.loc[~green, 'comp2'], c=[0.9, 0.2, 0, 1.0], s=50)
+        plt.scatter(self.test_data.loc[green, 'comp1'], self.test_data.loc[green, 'comp2'], c=[0, 0.5, 0, 0.3], s=50)
+        plt.scatter(self.test_data.loc[~green, 'comp1'], self.test_data.loc[~green, 'comp2'], c=[0.9, 0.2, 0, 1.0],
+                    s=50)
         plt.grid()
 
-        plt.subplot(2, 1, 2)
-        plt.legend(title=metric + " spread")
-        plt.xticks(self.x_axis)
-        plt.yticks(self.y_axis)
-        plt.scatter(self.test_data['comp1'], self.test_data['comp2'], c=self.__gen_color(metric),cmap=colormap, s=50)
-        plt.grid()
-        plt.colorbar()
+        fignum = 2
+        for i in range(num):
+            metric = metrics[i]
+            if metric not in self.columns:
+                raise Exception("Chosen metric was not initialized. check the metric initialization function.")
+            plt.subplot(num+1, 1, fignum)
+            fignum += 1
+            plt.legend(title=metric + " spread")
+            plt.xticks(self.x_axis)
+            plt.yticks(self.y_axis)
+            plt.scatter(self.test_data['comp1'], self.test_data['comp2'], c=self.__gen_color(metric), cmap=colormap,
+                        s=50)
+            plt.grid()
+            plt.colorbar()
         plt.tight_layout()
-        plt.show()
 
         del self.test_data["color"]
 
@@ -229,12 +258,13 @@ class Zodiac:
         c = []
 
         for k in self.test_data.values:
-            metric_val = self.density_map.loc[(self.density_map['x1'] <= k[0]) & (self.density_map['x2'] > k[0]) & (self.density_map['y1'] <= k[1]) & (self.density_map['y2'] > k[1])][
+            metric_val = self.density_map.loc[(self.density_map['x1'] <= k[0]) & (self.density_map['x2'] > k[0]) & (
+                    self.density_map['y1'] <= k[1]) & (self.density_map['y2'] > k[1])][
                 metric].values[0]
             c.append(metric_val)
         return c
 
-    def metric_plot(self,metric,colormap="viridis"):
+    def metric_plot(self, metric, colormap="viridis"):
         """
 
         :param metric:
@@ -255,7 +285,7 @@ class Zodiac:
         plt.tight_layout()
         plt.show()
 
-    def gen_parzen(self,radius):
+    def gen_parzen(self, radius):
 
         pmat = []
         for i in self.test_data.values:
@@ -264,38 +294,48 @@ class Zodiac:
             k = i[1]
             pmrow.append(h)
             pmrow.append(k)
-            results = []
-            preds = []
+            groundtruth = []
+            predictions = []
             numpoints = 0
             for j in self.test_data.values:
                 x = j[0] - h
                 y = j[1] - k
-                rval = radius*radius
-                lval = (x*x) + (y*y)
+                rval = radius * radius
+                lval = (x * x) + (y * y)
                 if lval <= rval:
-                    results.append(j[3])
-                    preds.append(j[2])
+                    predictions.append(j[3])
+                    groundtruth.append(j[2])
                     numpoints = numpoints + 1
             pmrow.append(numpoints)
 
-            for metric in self.metrics:
-                score = 0
-                if metric == "f1":
-                    score = f1_score(results, preds, average='micro')
-                elif metric == "accuracy":
-                    score = accuracy_score(results, preds)
-                elif metric == "recall":
-                    score = recall_score(results, preds, average='micro')
-                elif metric == "precision":
-                    score = precision_score(results, preds, average='micro')
-                pmrow.append(score)
+            if not self.custom_func:
+                for metric in self.metrics:
+                    if metric == "f1":
+                        if self.average is None:
+                            pmrow.append(f1_score(y_true=groundtruth, y_pred=predictions))
+                        else:
+                            pmrow.append(f1_score(y_true=groundtruth, y_pred=predictions, average=self.average))
+                    elif metric == "accuracy":
+                        pmrow.append(accuracy_score(y_true=groundtruth, y_pred=predictions))
+                    elif metric == "recall":
+                        if self.average is None:
+                            pmrow.append(recall_score(y_true=groundtruth, y_pred=predictions))
+                        else:
+                            pmrow.append(recall_score(y_true=groundtruth, y_pred=predictions, average=self.average))
+                    elif metric == "precision":
+                        if self.average is None:
+                            pmrow.append(precision_score(y_true=groundtruth, y_pred=predictions))
+                        else:
+                            pmrow.append(precision_score(y_true=groundtruth, y_pred=predictions, average=self.average))
+            else:
+                for function in self.metrics:
+                    pmrow.append(function(groundtruth, predictions))
             pmat.append(pmrow)
 
         self.parzen_map = pd.DataFrame(data=pmat,
-                                        columns=self.pcolumns)
+                                       columns=self.pcolumns)
 
-
-    def parzen_plot(self,metric,colormap = "viridis"):
+    def parzen_plot(self, metrics, colormap="viridis"):
         """
 
         :param radius:
@@ -304,40 +344,22 @@ class Zodiac:
         :return:
         """
 
+        num = len(metrics)
         plt.clf()
-        plt.figure(figsize=(16, 8))
-        plt.legend(title=metric + " parzen window")
-        if self.x_axis != [] and self.y_axis != []:
-            plt.xticks(self.x_axis)
-            plt.yticks(self.y_axis)
-        plt.scatter(self.parzen_map['component 1'], self.parzen_map['component 2'], c=self.parzen_map[metric], cmap=colormap, s=50)
-        plt.grid()
-        plt.colorbar()
+        plt.figure(figsize=(16, (8*num) + (2*num)))
+        for i in range(num):
+            metric = metrics[i]
+            if metric not in self.metrics:
+                raise Exception("Chosen metric was not initialized. check the metric initialization function.")
+
+            plt.subplot(num, 1, i+1)
+            plt.legend(title=metric + " parzen window")
+            if self.x_axis != [] and self.y_axis != []:
+                plt.xticks(self.x_axis)
+                plt.yticks(self.y_axis)
+            plt.scatter(self.parzen_map['component 1'], self.parzen_map['component 2'], c=self.parzen_map[metric],
+                        cmap=colormap, s=50)
+            plt.grid(b=False)
+            plt.colorbar()
         plt.tight_layout()
-        plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-
-
-
 
