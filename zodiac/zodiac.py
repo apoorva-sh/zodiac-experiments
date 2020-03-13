@@ -74,6 +74,7 @@ class Zodiac:
 
         self.columns = ['x1', 'x2', 'y1', 'y2', 'num points', 'density']
         self.metrics = []
+        self.pcolumns = ['component 1', 'component 2', 'num points']
         print("Setting metrics..")
         if not custom:
             for i in metrics:
