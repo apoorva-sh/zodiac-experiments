@@ -20,9 +20,9 @@ This repository houses the machine learning evaluation package Zodiac. This pack
 
 #### Plots
 
-## repo directory structure
+## Directory Structure
 
-## docs
+## Documentation
 
 ### notebooks
 
