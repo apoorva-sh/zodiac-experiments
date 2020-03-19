@@ -49,7 +49,9 @@ averaging method "None" is not accepted (since only one score must be mapped for
 
 #### Parzen window generation
 
-The dimension reduced dataset is used to generate a parzen window of a fixed radius (as set by a user) for each point in the test data. 
+A parzen window is a fixed radius region around a point, that gives us a snapchot view of the feature space a point resides in. Since a parzen window is of a fixed radius, each test point can have varying number of points in it's parzen window.
+
+In Zodiac the two dimension dataset is used to generate a parzen window of a fixed radius (as set by a user) for each point in the test data. 
 
 ![Parzen Windows](docs/joss/images/parzen_window.png)
 
@@ -100,9 +102,9 @@ The tutorials can be found in the [notebooks](https://github.com/apoorva-sh/zodi
 
 Follow the [Readme](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/notebooks/README.md) here to run these notebooks
 
-### [JOSS paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss%20paper)
+### [JOSS paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss)
 
-The joss [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss%20paper/paper.md) and relevant images can be found here
+The [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss/paper.md) and relevant images can be found here
 
 ## License
 

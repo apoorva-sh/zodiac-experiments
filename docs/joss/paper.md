@@ -48,7 +48,9 @@ averaging method "None" is not accepted (since only one score must be mapped for
 
 ### Parzen window generation
 
-The dimension reduced dataset is used to generate a parzen window of a fixed radius (as set by a user) for each point in the test data. 
+A parzen window is a fixed radius region around a point, that gives us a snapchot view of the feature space a point resides in. Since a parzen window is of a fixed radius, each test point can have varying number of points in it's parzen window.
+
+In Zodiac the two dimension dataset is used to generate a parzen window of a fixed radius (as set by a user) for each point in the test data. 
 
 ![Parzen Windows](images/parzen_window.png)
 
