@@ -26,7 +26,7 @@ class Zodiac:
     transformed_data = None
 
     # Metric variables
-    custom_func = False # Boolean for custom metric function
+    has_custom = False # Boolean for custom metric function
     average = None # Averaging method for f1, recall, and precision in multiclass classification
     metrics = [] # List of pre-set metric names
     custom = [] # Custom function list
@@ -103,14 +103,14 @@ class Zodiac:
 
         # Check for custom function and set flag
         if custom_func is None:
-            self.custom_func = False
+            self.has_custom = False
         else:
-            self.custom_func = True
+            self.has_custom = True
 
         print("Setting metrics..")
 
         #  Store metric names in metric values and column values for manual grid DataFrame and parzen DataFrame
-        if not self.custom_func:
+        if not self.has_custom:
             for i in metrics:
                 self.columns.append(i)
                 self.pcolumns.append(i)
@@ -124,7 +124,7 @@ class Zodiac:
         self.average = average
 
         # Verify that evrage type is set for multiclass classification
-        if self.model_type == "multiclass" and (self.average is None) and (not custom):
+        if self.model_type == "multiclass" and (self.average is None) and (not self.has_custom):
             if ("recall" in metrics) or ("precision" in metrics) or ("f1" in metrics):
                 raise Exception("for the set metrics using multiclass model, average type cannot be None. "
                                 "Check sklearn documentation for metrics for more information")
@@ -198,7 +198,7 @@ class Zodiac:
                 # If there are points in the grid then calculate metric value using only the
                 # points in that grid and add them to the density map row
                 if density != 0:
-                    if not self.custom_func:
+                    if not self.has_custom:
                         for function in self.metrics:
                             if function == "f1":
                                 if self.average is None:
@@ -408,7 +408,7 @@ class Zodiac:
             pmrow.append(numpoints)
 
             # Calculate metric value for all points in the parzen window of a test point
-            if not self.custom_func:
+            if not self.has_custom:
                 for metric in self.metrics:
                     if metric == "f1":
                         if self.average is None:
