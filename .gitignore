@@ -1,4 +1,5 @@
-.ipynb_checkpoints/
+docs/notebooks/.ipynb_checkpoints/
 data/
 .idea/
-zodiac/__pycache__/
+zodiac/__pycache__
+.ipynb_checkpoints/
