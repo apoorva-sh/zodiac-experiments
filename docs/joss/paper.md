@@ -38,7 +38,7 @@ This transformed dataset is used split the dataset into small grids with height 
 
 For each grid the required metrics as set by the user is calculated (thus the metric value for every point in the grid will be the same) 
 
-![Manual Grids](docs/joss/images/manual_grid.png)
+![Manual Grids](images/manual_grid.png)
 
 #### Metric calculation for multiclass classification
 
@@ -50,7 +50,7 @@ averaging method "None" is not accepted (since only one score must be mapped for
 
 The dimension reduced dataset is used to generate a parzen window of a fixed radius (as set by a user) for each point in the test data. 
 
-![Parzen Windows](docs/joss/images/parzen_window.png)
+![Parzen Windows](images/parzen_window.png)
 
 ### Metric calculation for parzen windows
 
@@ -62,13 +62,13 @@ Metric calculation for each point is done using all the points that fall in a pa
 
 These plots tend to have defined grid areas where model performance is better (since an entire grid has one metric value)
 
-![Manual Grid Plots](docs/joss/images/manual_grid_plot.png)
+![Manual Grid Plots](images/manual_grid_plot.png)
 
 #### Parzen window
 
 These plots are more gradient (each point has a value associated with the metric score for all points in a parzen window)
 
-![Parzen Plots](docs/joss/images/parzen_plot.png)
+![Parzen Plots](images/parzen_plot.png)
 
 
 # Funding and Support
