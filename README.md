@@ -102,9 +102,9 @@ The tutorials can be found in the [notebooks](https://github.com/apoorva-sh/zodi
 
 Follow the [Readme](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/notebooks/README.md) here to run these notebooks
 
-### [JOSS paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss%20paper)
+### [JOSS paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss)
 
-The joss [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss%20paper/paper.md) and relevant images can be found here
+The joss [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss/paper.md) and relevant images can be found here
 
 ## License
 
