@@ -63,6 +63,14 @@ Metric calculation for each point is done using all the points that fall in a pa
 
 These plots tend to have defined grid areas where model performance is better (since an entire grid has one metric value)
 
+![Manual Grid Plots](docs/joss/images/manual_grid_plot.png)
+
+##### Parzen window
+
+These plots are more gradient (each point has a value associated with the metric score for all points in a parzen window)
+
+![Parzen Plots](docs/joss/images/parzen_plot.png)
+
 ## Directory Structure
 
 ```
