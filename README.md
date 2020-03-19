@@ -104,7 +104,7 @@ Follow the [Readme](https://github.com/apoorva-sh/zodiac-experiments/blob/master
 
 ### [JOSS paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss)
 
-The joss [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss/paper.md) and relevant images can be found here
+The [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss/paper.md) and relevant images can be found here
 
 ## License
 
