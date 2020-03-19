@@ -14,9 +14,18 @@ To that end we propose the solution Zodiac: that allows for a user to visualize 
 
 #### Input to the package
 
-- train : training dataset :: pd.DataFrame
-- test : test dataset :: pd.DataFrame
-- 
+##### When initializing package
+- train_data : training dataset :: pd.DataFrame
+- test_data : test dataset :: pd.DataFrame
+- test_labels : test data labels :: np.array
+- test_predictions : predicted values using model :: np.array
+- model_type : what type of model it is :: string value (multiclass, binaryclass, regression)
+- dim_red : what type of dimension reduction methodology to use :: string value (PCA, TSNE)
+
+##### When setting metrics
+- custom_func : custom function to calculate metrics that takes test_labels and test_predictions :: function
+- metrics : preset metric list :: string value (accuracy, f1, recall, precision)
+- average : averaging method for multiclass model with f1, recall, and precision metrics :: string value (micro, macro, binary, weighted, samples)
 
 #### Dimension reduction
 
@@ -30,6 +39,8 @@ This transformed dataset is used split the dataset into small grids with height 
 
 For each grid the required metrics as set by the user is calculated (thus the metric value for every point in the grid will be the same) 
 
+![Manual Grids](docs/joss/images/manual_grid.png)
+
 ##### Metric calculation for multiclass classification
 
 It must be noted that for multiclass classification an averaging method must be set if using pre-set metric for precision, recall, and f1 as documented in [sklearn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html) under optional attribute average.
@@ -39,6 +50,8 @@ averaging method "None" is not accepted (since only one score must be mapped for
 #### Parzen window generation
 
 The dimension reduced dataset is used to generate a parzen window of a fixed radius (as set by a user) for each point in the test data. 
+
+![Parzen Windows](docs/joss/images/parzen_window.png)
 
 #### Metric calculation for parzen windows
 
