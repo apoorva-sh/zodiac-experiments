@@ -43,6 +43,7 @@ class Zodiac:
 
         # self.predictions = test_predictions
         # self.labels = test_labels
+
         self.dim_red = dim_red
 
         train_len = len(train_data)
@@ -61,6 +62,15 @@ class Zodiac:
         self.test_data["labels"] = test_labels
         self.test_data["predictions"] = test_predictions
         self.model_type = model_type
+
+        if self.train_data.isnull().values.any():
+            raise Exception("Null values in training data")
+        if self.test_data.labels.isnull().values.any():
+            raise Exception("Null values in labels, make sure to pass an np.array ")
+        if self.test_data.predictions.isnull().values.any():
+            raise Exception("Null values in predictions, make sure to pass an np.array ")
+        if self.test_data.isnull().values.any():
+            raise Exception("Null values in test_data")
 
     def set_metrics(self, custom_func=None, metrics=["accuracy"], average=None, custom=False):
         """
@@ -287,7 +297,7 @@ class Zodiac:
         plt.show()
 
     def gen_parzen(self, radius):
-
+        print("Generating parzen windows...")
         pmat = []
         for i in self.test_data.values:
             pmrow = []
@@ -335,6 +345,7 @@ class Zodiac:
 
         self.parzen_map = pd.DataFrame(data=pmat,
                                        columns=self.pcolumns)
+        print("Completed.")
 
     def parzen_plot(self, metrics, colormap="viridis"):
         """
