@@ -84,7 +84,7 @@ These plots are more gradient (each point has a value associated with the metric
 |   |   ├── README.md
 │   │   ├── MNIST_MultiClass.ipynb
 │   │   └── UCI_BreastCancer_BinaryClass.ipynb
-│   └── joss paper
+│   └── joss
 │       ├── images
 │       └── paper.md
 └── zodiac
@@ -102,7 +102,7 @@ The tutorials can be found in the [notebooks](https://github.com/apoorva-sh/zodi
 
 Follow the [Readme](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/notebooks/README.md) here to run these notebooks
 
-### [JOSS paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss)
+### [paper](https://github.com/apoorva-sh/zodiac-experiments/tree/master/docs/joss)
 
 The [paper markdown file](https://github.com/apoorva-sh/zodiac-experiments/blob/master/docs/joss/paper.md) and relevant images can be found here
 
